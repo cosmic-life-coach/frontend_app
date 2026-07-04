@@ -1,0 +1,44 @@
+name: cosmic_coach
+description: Cosmic Coach — Vedic astrology daily life coach (Flutter client).
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management — Riverpod primary; Bloc ONLY for chat/voice streams.
+  hooks_riverpod: ^2.5.1
+  flutter_hooks: ^0.20.5
+  flutter_bloc: ^8.1.6
+
+  # Navigation
+  go_router: ^14.2.0
+
+  # Networking (REST + SSE streaming from the FastAPI backend)
+  dio: ^5.5.0
+
+  # Firebase (auth tokens for the backend, FCM push)
+  firebase_core: ^3.3.0
+  firebase_auth: ^5.1.4
+  firebase_messaging: ^15.0.4
+  google_sign_in: ^6.2.1
+
+  # UI
+  google_fonts: ^6.2.1   # Outfit + Noto Serif Devanagari
+
+  # Observability
+  logger: ^2.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  bloc_test: ^9.1.7
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true

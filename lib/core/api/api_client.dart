@@ -16,6 +16,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../logging/app_logger.dart';
+import 'api_exception.dart';
 
 /// Base URL is injectable at build time:
 ///   flutter run --dart-define=API_BASE_URL=http://192.168.1.5:8000
@@ -23,21 +24,6 @@ const String apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
   defaultValue: 'http://localhost:8000',
 );
-
-/// Normalized backend failure. `message` is safe to show to the user.
-class ApiException implements Exception {
-  const ApiException({required this.code, required this.message, this.statusCode});
-
-  final String code;
-  final String message;
-  final int? statusCode;
-
-  /// True when the backend itself is unreachable (down / wrong URL / no net).
-  bool get isBackendDown => code == 'BACKEND_UNREACHABLE' || statusCode == 503;
-
-  @override
-  String toString() => 'ApiException($code, $statusCode): $message';
-}
 
 /// Build the shared Dio client. Exposed through a Riverpod provider in
 /// feature repositories; widgets never touch Dio directly.
@@ -96,29 +82,21 @@ Dio buildApiClient({FirebaseAuth? auth}) {
   return dio;
 }
 
-/// Translate any Dio failure into the app's [ApiException] vocabulary.
+/// Translate any Dio failure into the app's sealed [ApiException] vocabulary.
 ApiException _toApiException(DioException error) {
   // Backend never answered: down, wrong URL, or no connectivity.
   if (error.type == DioExceptionType.connectionError ||
       error.type == DioExceptionType.connectionTimeout) {
-    return const ApiException(
-      code: 'BACKEND_UNREACHABLE',
-      message: 'Backend not connected — check that the server is running.',
-    );
+    return const BackendUnreachable();
   }
 
   // Backend answered with the standard error envelope.
   final data = error.response?.data;
-  if (data is Map && data['error'] is Map) {
-    final err = data['error'] as Map;
-    return ApiException(
-      code: err['code']?.toString() ?? 'UNKNOWN',
-      message: err['message']?.toString() ?? 'Something went wrong.',
-      statusCode: error.response?.statusCode,
-    );
+  if (data is Map<String, dynamic> && data['error'] is Map) {
+    return ApiException.fromEnvelope(data, error.response?.statusCode);
   }
 
-  return ApiException(
+  return ServerError(
     code: 'UNKNOWN',
     message: 'Unexpected error. Please try again.',
     statusCode: error.response?.statusCode,

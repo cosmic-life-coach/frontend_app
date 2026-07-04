@@ -12,6 +12,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/view/auth_screen.dart';
 import '../../features/home/view/home_screen.dart';
+import '../../features/profile/view/edit_profile_screen.dart';
+import '../../features/profile/view/profile_screen.dart';
 import '../logging/app_logger.dart';
 
 /// Route names used across the app — never hardcode path strings in widgets.
@@ -40,8 +42,11 @@ GoRouter buildRouter() {
     routes: [
       GoRoute(path: Routes.auth, builder: (_, __) => const AuthScreen()),
       GoRoute(path: Routes.home, builder: (_, __) => const HomeScreen()),
-      GoRoute(path: Routes.profile, builder: (_, __) => const _Placeholder('Vedic Profile')),
-      GoRoute(path: Routes.editProfile, builder: (_, __) => const _Placeholder('Edit Profile')),
+      GoRoute(path: Routes.profile, builder: (_, __) => const ProfileScreen()),
+      GoRoute(
+        path: Routes.editProfile,
+        builder: (_, __) => const EditProfileScreen(),
+      ),
     ],
   );
 }
@@ -61,14 +66,3 @@ class _LoggingObserver extends NavigatorObserver {
   }
 }
 
-/// Temporary stand-in until each feature phase lands its real screen.
-class _Placeholder extends StatelessWidget {
-  const _Placeholder(this.label);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('$label — coming in its phase')));
-  }
-}

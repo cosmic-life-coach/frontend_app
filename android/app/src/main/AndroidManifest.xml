@@ -1,4 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Backend API calls (release builds need this explicitly). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- On-device speech-to-text (voice coach mode). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Android 11+: make the system speech recognition service visible. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
+        </intent>
+    </queries>
     <application
         android:label="cosmic_coach"
         android:name="${applicationName}"

@@ -8,6 +8,10 @@ import 'package:cosmic_coach/core/theme/cosmic_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  // google_fonts reads the asset manifest when building text themes, which
+  // requires the services binding even in a plain unit test.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('dark and light themes expose the design tokens', () {
     final dark = cosmicDarkTheme().extension<CosmicTokens>();
     final light = cosmicLightTheme().extension<CosmicTokens>();

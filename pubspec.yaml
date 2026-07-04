@@ -30,6 +30,9 @@ dependencies:
   # UI
   google_fonts: ^6.2.1   # Outfit + Noto Serif Devanagari
 
+  # Voice — on-device speech-to-text (transcript goes to the chat API)
+  speech_to_text: ^7.0.0
+
   # Observability
   logger: ^2.4.0
 

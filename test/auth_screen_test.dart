@@ -59,6 +59,9 @@ void main() {
 
   testWidgets('toggles into sign-up mode and back', (tester) async {
     await tester.pumpWidget(_wrap(FakeAuthRepository()));
+    // Let the AsyncNotifier's initial build() settle — until it does, the
+    // screen is in the busy state and every onTap is disabled.
+    await tester.pump();
 
     // The footer sits below the fold in the 800x600 test viewport.
     await tester.ensureVisible(find.text('Create an account'));
@@ -77,6 +80,7 @@ void main() {
       (tester) async {
     final fake = FakeAuthRepository();
     await tester.pumpWidget(_wrap(fake));
+    await tester.pump(); // settle initial AsyncNotifier build
 
     await tester.enterText(
       find.byType(TextField).first,

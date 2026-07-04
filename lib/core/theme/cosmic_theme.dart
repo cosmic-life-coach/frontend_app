@@ -26,6 +26,9 @@ class CosmicTokens extends ThemeExtension<CosmicTokens> {
     required this.assistantText,
     required this.scrim,
     required this.bgGradient,
+    required this.star,
+    required this.nebulaA,
+    required this.nebulaB,
   });
 
   final Color gold;
@@ -39,6 +42,12 @@ class CosmicTokens extends ThemeExtension<CosmicTokens> {
   final Color assistantText;
   final Color scrim;
   final Gradient bgGradient;
+
+  /// Starfield colors — stars are lavender at night, soft white at dawn;
+  /// nebulas shift from purple/blue (dark) to blue/lilac (light).
+  final Color star;
+  final Color nebulaA;
+  final Color nebulaB;
 
   /// Deep-space dark tokens (app default).
   static const dark = CosmicTokens(
@@ -58,6 +67,9 @@ class CosmicTokens extends ThemeExtension<CosmicTokens> {
       colors: [CosmicDark.bgTop, CosmicDark.bgMid, CosmicDark.bgBottom],
       stops: [0.0, 0.55, 1.0],
     ),
+    star: Color(0xFFEDE7FB),
+    nebulaA: Color(0x477848C4), // purple, top-left
+    nebulaB: Color(0x334068C4), // blue, bottom-right
   );
 
   /// Dawn-sky light tokens.
@@ -77,6 +89,9 @@ class CosmicTokens extends ThemeExtension<CosmicTokens> {
       end: Alignment.bottomCenter,
       colors: [CosmicLight.bgTop, CosmicLight.bgBottom],
     ),
+    star: Color(0xCCFFFFFF), // barely-there daylight stars
+    nebulaA: CosmicLight.nebulaBlue,
+    nebulaB: CosmicLight.nebulaLilac,
   );
 
   @override

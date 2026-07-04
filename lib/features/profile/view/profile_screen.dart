@@ -49,9 +49,9 @@ class ProfileScreen extends HookConsumerWidget {
             builder: (_, __) => CustomPaint(
               painter: StarfieldPainter(
                 t: sky.value,
-                starColor: const Color(0xFFEDE7FB),
-                nebula1: const Color(0x477848C4),
-                nebula2: const Color(0x334068C4),
+                starColor: cosmic.star,
+                nebula1: cosmic.nebulaA,
+                nebula2: cosmic.nebulaB,
               ),
             ),
           ),

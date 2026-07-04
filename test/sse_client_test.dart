@@ -34,8 +34,10 @@ void main() {
           'data: {"type":"chunk","text":"b"}\n\n'
           'data: {"type":"done","vector_id":"v1"}\n\n',
     ]);
-    expect(events.map((e) => e.runtimeType).toList(),
-        [SseChunk, SseChunk, SseDone]);
+    expect(
+      events.map((e) => e.runtimeType).toList(),
+      [SseChunk, SseChunk, SseDone],
+    );
   });
 
   test('error frame surfaces as SseError with the backend message', () async {

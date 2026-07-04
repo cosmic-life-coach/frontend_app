@@ -53,10 +53,18 @@ class StarfieldPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // --- Nebula blobs: soft radial glows drifting slowly (design: 18s loop).
     final drift = Offset(18 * t, -22 * t);
-    _paintNebula(canvas, Offset(size.width * .3, size.height * .12) + drift,
-        size.width * .55, nebula1);
-    _paintNebula(canvas, Offset(size.width * .88, size.height * .78) - drift,
-        size.width * .45, nebula2);
+    _paintNebula(
+      canvas,
+      Offset(size.width * .3, size.height * .12) + drift,
+      size.width * .55,
+      nebula1,
+    );
+    _paintNebula(
+      canvas,
+      Offset(size.width * .88, size.height * .78) - drift,
+      size.width * .45,
+      nebula2,
+    );
 
     // --- Stars: opacity oscillates .25 → 1 (design keyframe `twinkle`).
     final paint = Paint();

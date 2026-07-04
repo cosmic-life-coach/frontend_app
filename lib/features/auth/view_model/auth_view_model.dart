@@ -24,7 +24,7 @@ class AuthViewModel extends AutoDisposeAsyncNotifier<void> {
     state = const AsyncLoading();
     try {
       await action();
-      appLogger.i('auth: signed in as ${FirebaseAuth.instance.currentUser?.uid}');
+      appLogger.i('auth: sign-in flow completed');
       // Device introduces itself to the backend for daily pushes.
       // ignore: unawaited_futures
       ref.read(pushTokenRegistrarProvider).registerAfterSignIn();

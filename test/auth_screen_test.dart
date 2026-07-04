@@ -60,11 +60,14 @@ void main() {
   testWidgets('toggles into sign-up mode and back', (tester) async {
     await tester.pumpWidget(_wrap(FakeAuthRepository()));
 
+    // The footer sits below the fold in the 800x600 test viewport.
+    await tester.ensureVisible(find.text('Create an account'));
     await tester.tap(find.text('Create an account'));
     await tester.pump();
     expect(find.text('Create account'), findsOneWidget); // button relabeled
     expect(find.text('Forgot?'), findsNothing); // hidden in sign-up
 
+    await tester.ensureVisible(find.text('Already have an account? Sign in'));
     await tester.tap(find.text('Already have an account? Sign in'));
     await tester.pump();
     expect(find.text('Enter'), findsOneWidget);
@@ -76,14 +79,21 @@ void main() {
     await tester.pumpWidget(_wrap(fake));
 
     await tester.enterText(
-        find.byType(TextField).first, 'arjun@cosmos.app');
+      find.byType(TextField).first,
+      'arjun@cosmos.app',
+    );
     await tester.enterText(find.byType(TextField).last, 'secret123');
+    await tester.ensureVisible(find.text('Enter'));
     await tester.tap(find.text('Enter'));
     await tester.pump(); // busy state
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(fake.calls, ['email:arjun@cosmos.app']);
 
-    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    // NOTE: no pumpAndSettle here — the starfield animation repeats forever,
+    // so we advance time with bounded pumps instead.
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(CircularProgressIndicator), findsNothing); // idle again
   });
 }

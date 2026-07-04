@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/view/auth_screen.dart';
+import '../../features/calendar/view/calendar_screen.dart';
 import '../../features/home/view/home_screen.dart';
 import '../../features/profile/view/edit_profile_screen.dart';
 import '../../features/profile/view/profile_screen.dart';
@@ -22,6 +23,7 @@ abstract final class Routes {
   static const home = '/home';
   static const profile = '/profile';
   static const editProfile = '/profile/edit';
+  static const calendar = '/calendar';
 }
 
 /// Build the router. `authStream` lets go_router re-evaluate redirects the
@@ -47,6 +49,7 @@ GoRouter buildRouter() {
         path: Routes.editProfile,
         builder: (_, __) => const EditProfileScreen(),
       ),
+      GoRoute(path: Routes.calendar, builder: (_, __) => const CalendarScreen()),
     ],
   );
 }

@@ -14,12 +14,15 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../app.dart';
+import '../../../core/notifications/push_token_registrar.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/cosmic_theme.dart';
 import '../../auth/repository/auth_repository.dart';
 
-/// Notifications master switch (UI state).
-/// TODO(phase-5): persist to the backend and gate FCM registration on it.
+/// Notifications master switch. Turning it ON (re-)registers this device's
+/// FCM token with the backend so the daily 7:00 IST push arrives here.
+/// TODO(backend): a DELETE /notifications/token endpoint so turning it OFF
+/// actually stops the push server-side, not just on this device's UI.
 final notificationsEnabledProvider = StateProvider<bool>((_) => true);
 
 class FloatingMenu extends HookConsumerWidget {
@@ -181,9 +184,18 @@ class _MenuPanel extends ConsumerWidget {
                   style: TextStyle(fontSize: 13, color: cosmic.muted),
                 ),
                 GestureDetector(
-                  onTap: () => ref
-                      .read(notificationsEnabledProvider.notifier)
-                      .state = !notifOn,
+                  onTap: () {
+                    final turningOn = !notifOn;
+                    ref.read(notificationsEnabledProvider.notifier).state =
+                        turningOn;
+                    if (turningOn) {
+                      // Fire-and-forget: token lands in Firestore and the
+                      // daily push scheduler picks this device up again.
+                      ref
+                          .read(pushTokenRegistrarProvider)
+                          .registerAfterSignIn();
+                    }
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     width: 44,
@@ -229,10 +241,8 @@ class _MenuPanel extends ConsumerWidget {
               subtitle: 'Daily remedy task flow',
               cosmic: cosmic,
               onTap: () {
-                // TODO(phase-5): calendar & remedies screen.
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Coming soon ✨')),
-                );
+                onClose();
+                context.push(Routes.calendar);
               },
             ),
             const Spacer(),

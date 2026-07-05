@@ -46,5 +46,25 @@ dev_dependencies:
   bloc_test: ^9.1.7
   mocktail: ^1.0.4
 
+  # Generates the native (OS-level) launch screen from assets/splash/ below.
+  # Run `dart run flutter_native_splash:create` after editing that config or
+  # swapping the source images -- native splash screens are static (no
+  # animation), so this covers the brief moment before Flutter's first frame;
+  # the animated version lives at lib/features/splash/view/splash_screen.dart.
+  flutter_native_splash: ^2.4.1
+
 flutter:
   uses-material-design: true
+  assets:
+    - assets/splash/
+
+flutter_native_splash:
+  color: "#050409"
+  image: assets/splash/branding.png
+  background_image: assets/splash/background.png
+  android_12:
+    color: "#050409"
+    image: assets/splash/branding.png
+    icon_background_color: "#050409"
+  android: true
+  ios: true

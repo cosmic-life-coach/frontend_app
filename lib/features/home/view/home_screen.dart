@@ -59,13 +59,13 @@ class HomeScreen extends HookConsumerWidget {
         BlocProvider(create: (_) => VoiceCubit()),
       ],
       child: BlocListener<VoiceCubit, VoiceState>(
-        // A finalized voice transcript becomes a chat message; the UI flips
-        // to chat mode so the user watches the reply stream in.
+        // A finalized voice transcript becomes a chat message. The user
+        // STAYS in voice mode — the reply streams in under the orb
+        // (mode-switching mid-interaction felt jarring; see bug report).
         listenWhen: (_, next) => next.finalTranscript != null,
         listener: (context, state) {
           context.read<ChatBloc>().add(ChatMessageSent(state.finalTranscript!));
           context.read<VoiceCubit>().consumeFinal();
-          isChat.value = true;
         },
         child: Scaffold(
           body: Stack(

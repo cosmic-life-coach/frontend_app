@@ -8,7 +8,7 @@
 ///
 /// Backend errors always arrive as
 ///   {"success": false, "error": {"code", "message", "detail"}}
-/// and are normalized into [ApiException] so the UI can show
+/// and are normalized into [ApiException] so the UI can showx
 /// `error.message` directly.
 library;
 
@@ -22,7 +22,7 @@ import 'api_exception.dart';
 ///   flutter run --dart-define=API_BASE_URL=http://192.168.1.5:8000
 const String apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://localhost:8000',
+  defaultValue: 'http://192.168.1.15:8000',
 );
 
 /// Build the shared Dio client. Exposed through a Riverpod provider in

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "506442014928",
+    "project_id": "cosmic-life-coach-f8dd5",
+    "storage_bucket": "cosmic-life-coach-f8dd5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:506442014928:android:66322cf1f19f9fd00bbed5",
+        "android_client_info": {
+          "package_name": "com.vinay.cosmic_coach"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "506442014928-atvnlkluvingm2vp90b00h25fpa0bf1c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIX6k7lMhRB0mK8Wk6DVVV9Y7GdAw2CoQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "506442014928-atvnlkluvingm2vp90b00h25fpa0bf1c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/cosmic_theme.dart';
+import '../bloc/chat_bloc.dart';
 import '../bloc/voice_cubit.dart';
 
 class VoiceView extends StatelessWidget {
@@ -76,34 +77,80 @@ class VoiceView extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        // --- Status line: hint, live transcript, or unavailable notice ---
+        // --- Status area: transcript while listening, the coach's reply
+        //     streaming in after (voice mode is a full conversation now),
+        //     or the idle hint. ---
         SizedBox(
-          height: 40,
+          height: 110,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Text(
-              switch (voice.status) {
-                VoiceStatus.listening => voice.transcript.isEmpty
-                    ? 'Listening…'
-                    : voice.transcript,
-                VoiceStatus.unavailable =>
-                  'Voice input unavailable — check mic permission.',
-                VoiceStatus.idle => 'TAP TO SPEAK',
+            padding: const EdgeInsets.symmetric(horizontal: 36),
+            child: BlocBuilder<ChatBloc, ChatState>(
+              builder: (context, chat) {
+                // Priority 1: live transcript while the mic is hot.
+                if (voice.status == VoiceStatus.listening) {
+                  return _StatusText(
+                    voice.transcript.isEmpty ? 'Listening…' : voice.transcript,
+                    color: cosmic.gold,
+                  );
+                }
+                if (voice.status == VoiceStatus.unavailable) {
+                  return _StatusText(
+                    'Voice input unavailable — check mic permission.',
+                    color: cosmic.muted,
+                  );
+                }
+                // Priority 2: the coach's answer to the spoken question.
+                final reply = chat.messages.isNotEmpty && !chat.messages.last.fromUser
+                    ? chat.messages.last.text
+                    : '';
+                if (chat.isStreaming || reply.isNotEmpty) {
+                  return SingleChildScrollView(
+                    reverse: true, // keep the newest words in view
+                    child: Text(
+                      chat.isStreaming ? '$reply▍' : reply,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        height: 1.5,
+                        color: cosmic.assistantText,
+                      ),
+                    ),
+                  );
+                }
+                // Priority 3: idle hint, exactly like the design.
+                return Text(
+                  'TAP TO SPEAK',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    letterSpacing: 1.5,
+                    color: cosmic.muted,
+                  ),
+                );
               },
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: voice.status == VoiceStatus.idle
-                  ? TextStyle(
-                      fontSize: 12,
-                      letterSpacing: 1.5,
-                      color: cosmic.muted,
-                    )
-                  : TextStyle(fontSize: 14, color: cosmic.gold),
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Single-purpose centered status text (transcript / notices).
+class _StatusText extends StatelessWidget {
+  const _StatusText(this.text, {required this.color});
+
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      maxLines: 4,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(fontSize: 14, height: 1.4, color: color),
     );
   }
 }

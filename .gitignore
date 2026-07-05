@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local override for API_BASE_URL when testing on a physical device (needs
+# your machine's real LAN IP, which is personal to your network -- see
+# config/dev.json and docs/environment-config.md). Never commit this.
+config/local.json

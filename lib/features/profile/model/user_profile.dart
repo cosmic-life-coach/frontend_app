@@ -121,7 +121,7 @@ class UserProfile {
     required this.birthPlace,
     required this.lat,
     required this.lon,
-    required this.tzOffset,
+    this.tzOffset,
     this.gender,
     this.chart,
     this.chartSummary = '',
@@ -134,7 +134,12 @@ class UserProfile {
   final String birthPlace;
   final double lat;
   final double lon;
-  final double tzOffset;
+
+  /// UTC offset, e.g. 5.5 for IST. The backend derives this from lat/lon +
+  /// dob (timezonefinder + zoneinfo) -- null here just means "not resolved
+  /// yet" (a brand-new profile that hasn't been saved). Never hand-typed by
+  /// the user; the edit form only ever displays it, never edits it.
+  final double? tzOffset;
 
   /// Shown in the edit form; not yet persisted server-side.
   /// TODO(backend): add `gender` to UserProfileRequest and store it.
@@ -164,7 +169,7 @@ class UserProfile {
       birthPlace: profile['birth_place'] as String? ?? '',
       lat: (profile['lat'] as num?)?.toDouble() ?? 0,
       lon: (profile['lon'] as num?)?.toDouble() ?? 0,
-      tzOffset: (profile['tz_offset'] as num?)?.toDouble() ?? 5.5,
+      tzOffset: (profile['tz_offset'] as num?)?.toDouble(),
       gender: profile['gender'] as String?,
       chart: json['chart'] == null
           ? null
@@ -174,7 +179,11 @@ class UserProfile {
     );
   }
 
-  /// Body of POST /api/v1/users/me/profile.
+  /// Body of POST /api/v1/users/me/profile. tz_offset is intentionally
+  /// omitted unless we already have one on file (e.g. re-saving an existing
+  /// profile) -- the backend derives it from lat/lon/dob and that derived
+  /// value always wins anyway, so sending a stale client-side guess would
+  /// only be misleading.
   Map<String, dynamic> toRequestJson() => {
         'name': name,
         'dob': dob,
@@ -182,7 +191,7 @@ class UserProfile {
         'birth_place': birthPlace,
         'lat': lat,
         'lon': lon,
-        'tz_offset': tzOffset,
+        if (tzOffset != null) 'tz_offset': tzOffset,
         if (gender != null) 'gender': gender, // ignored server-side for now
       };
 }

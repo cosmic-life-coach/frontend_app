@@ -36,6 +36,10 @@ dependencies:
   # Opens the Google Calendar OAuth consent page in the browser
   url_launcher: ^6.3.0
 
+  # On-device geocoding: birth place name -> lat/lon (accuracy of the
+  # chart depends on real coordinates, not hand-typed guesses)
+  geocoding: ^3.0.0
+
   # Observability
   logger: ^2.4.0
 

@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/analytics/analytics_service.dart';
 import '../../../core/theme/cosmic_theme.dart';
 import '../../../core/theme/starfield_painter.dart';
 import '../bloc/chat_bloc.dart';
@@ -53,10 +54,13 @@ class HomeScreen extends HookConsumerWidget {
 
     final name = ref.watch(displayNameProvider);
 
+    final analytics = ref.read(analyticsServiceProvider);
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => ChatBloc(ref.read(chatRepositoryProvider))),
-        BlocProvider(create: (_) => VoiceCubit()),
+        BlocProvider(
+          create: (_) => ChatBloc(ref.read(chatRepositoryProvider), analytics),
+        ),
+        BlocProvider(create: (_) => VoiceCubit(analytics: analytics)),
       ],
       child: BlocListener<VoiceCubit, VoiceState>(
         // A finalized voice transcript becomes a chat message. The user

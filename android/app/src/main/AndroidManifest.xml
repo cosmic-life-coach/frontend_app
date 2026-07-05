@@ -10,7 +10,7 @@
         </intent>
     </queries>
     <application
-        android:label="cosmic_coach"
+        android:label="Cosmic Coach"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

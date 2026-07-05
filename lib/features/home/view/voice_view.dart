@@ -155,45 +155,114 @@ class _StatusText extends StatelessWidget {
   }
 }
 
-/// The big Om orb: soft gold glow that breathes (design: omBreathe/omGlow).
-class _OmOrb extends StatelessWidget {
+/// The big Om orb: soft gold glow that breathes (design: omBreathe/omGlow)
+/// plus three gold rings that expand outward and fade, staggered 1.5s apart
+/// over a 4.5s loop (design: omRing keyframe -- scale 0.55->2.1,
+/// opacity 0->0.5 at 18%->0 by 100%). Runs on its own ticker rather than
+/// the shared 6s sky controller so the 4.5s ripple never skips a beat when
+/// the sky's lap resets (6 isn't a multiple of 4.5).
+class _OmOrb extends StatefulWidget {
   const _OmOrb({required this.controller, required this.cosmic});
 
+  /// The breathe/glow animation stays on the shared sky controller.
   final AnimationController controller;
   final CosmicTokens cosmic;
 
   @override
+  State<_OmOrb> createState() => _OmOrbState();
+}
+
+class _OmOrbState extends State<_OmOrb> with SingleTickerProviderStateMixin {
+  late final AnimationController _ringController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 4500),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _ringController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final cosmic = widget.cosmic;
     return AnimatedBuilder(
-      animation: controller,
+      animation: Listenable.merge([widget.controller, _ringController]),
       builder: (_, __) {
-        final breathe = 0.5 + 0.5 * sin(2 * pi * controller.value);
+        final breathe = 0.5 + 0.5 * sin(2 * pi * widget.controller.value);
         return Transform.scale(
           scale: 1 + 0.045 * breathe,
-          child: Container(
+          child: SizedBox(
             width: 170,
             height: 170,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: cosmic.panelBorder),
-              boxShadow: [
-                BoxShadow(
-                  color: cosmic.gold.withValues(alpha: 0.30 + 0.25 * breathe),
-                  blurRadius: 26 + 8 * breathe,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Three rings, each 1/3 of the cycle (1.5s) behind the last.
+                for (final delay in [0.0, 1 / 3, 2 / 3])
+                  _OmRing(progress: (_ringController.value + delay) % 1.0, cosmic: cosmic),
+                Container(
+                  width: 170,
+                  height: 170,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: cosmic.panelBorder),
+                    boxShadow: [
+                      BoxShadow(
+                        color: cosmic.gold.withValues(alpha: 0.30 + 0.25 * breathe),
+                        blurRadius: 26 + 8 * breathe,
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'ॐ',
+                    style: GoogleFonts.notoSerifDevanagari(
+                      fontSize: 72,
+                      color: cosmic.om,
+                    ),
+                  ),
                 ),
               ],
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              'ॐ',
-              style: GoogleFonts.notoSerifDevanagari(
-                fontSize: 72,
-                color: cosmic.om,
-              ),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+/// One expanding-and-fading ring at a given point (0..1) in the omRing cycle.
+class _OmRing extends StatelessWidget {
+  const _OmRing({required this.progress, required this.cosmic});
+
+  final double progress;
+  final CosmicTokens cosmic;
+
+  @override
+  Widget build(BuildContext context) {
+    const baseSize = 132.0;
+    final scale = 0.55 + (2.1 - 0.55) * progress;
+    // 0 -> 0.5 opacity over the first 18% of the cycle, then 0.5 -> 0 for
+    // the rest -- matches the design's `omRing` keyframe shape.
+    final opacity = progress < 0.18
+        ? 0.5 * (progress / 0.18)
+        : 0.5 * (1 - (progress - 0.18) / (1 - 0.18));
+
+    return Opacity(
+      opacity: opacity.clamp(0.0, 1.0),
+      child: Transform.scale(
+        scale: scale,
+        child: Container(
+          width: baseSize,
+          height: baseSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: cosmic.gold, width: 1),
+          ),
+        ),
+      ),
     );
   }
 }

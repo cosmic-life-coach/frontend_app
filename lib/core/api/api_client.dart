@@ -18,16 +18,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../logging/app_logger.dart';
 import 'api_exception.dart';
 
-/// Base URL is injectable at build time:
-///   flutter run --dart-define=API_BASE_URL=http://192.168.1.5:8000
-const String apiBaseUrl = String.fromEnvironment(
-  'API_BASE_URL',
-  defaultValue: 'http://192.168.1.15:8000',
-);
+/// Base URL is injectable at build time via one of the environment config
+/// files in config/ (dev/staging/prod -- see docs/environment-config.md):
+///   flutter run --dart-define-from-file=config/dev.json
+///
+/// No hardcoded fallback on purpose -- a stale LAN IP baked into the
+/// default silently pointed every uncustomized build at one developer's
+/// home network. An empty value is a loud, obvious failure (every request
+/// errors immediately) instead of a quiet wrong one.
+const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
 
 /// Build the shared Dio client. Exposed through a Riverpod provider in
 /// feature repositories; widgets never touch Dio directly.
 Dio buildApiClient({FirebaseAuth? auth}) {
+  if (apiBaseUrl.isEmpty) {
+    appLogger.e(
+      'API_BASE_URL is not set -- every request will fail. Run with '
+      '--dart-define-from-file=config/dev.json (or staging/prod.json). '
+      'See docs/environment-config.md.',
+    );
+  }
+
   final dio = Dio(
     BaseOptions(
       baseUrl: apiBaseUrl,

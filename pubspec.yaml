@@ -59,12 +59,12 @@ flutter:
     - assets/splash/
 
 flutter_native_splash:
-  color: "#050409"
-  image: assets/splash/branding.png
-  background_image: assets/splash/background.png
+  # Config from the brand asset pack (flutter_assets/pubspec_snippet.yaml):
+  # deep-space solid color + transparent radiant-Om logo.
+  color: "#0B0819"
+  image: assets/splash/splash_logo_1024.png
   android_12:
-    color: "#050409"
-    image: assets/splash/branding.png
-    icon_background_color: "#050409"
+    color: "#0B0819"
+    image: assets/splash/splash_logo_512.png
   android: true
   ios: true

@@ -9,10 +9,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/cosmic_theme.dart';
 import '../../../core/theme/starfield_painter.dart';
+import '../../profile/view_model/profile_view_model.dart';
 import '../bloc/chat_bloc.dart';
 import '../bloc/voice_cubit.dart';
 import '../repository/chat_repository.dart';
@@ -52,6 +55,21 @@ class HomeScreen extends HookConsumerWidget {
       ..repeat();
 
     final name = ref.watch(displayNameProvider);
+
+    // --- New-user onboarding: no birth details -> guide them to the edit
+    // form once per session. Without a chart the coach is flying blind.
+    final promptedForProfile = useRef(false);
+    ref.listen(profileViewModelProvider, (_, next) {
+      if (next case AsyncData(value: null) when !promptedForProfile.value) {
+        promptedForProfile.value = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Share your birth details to unlock your chart ✨'),
+          ),
+        );
+        context.push(Routes.editProfile);
+      }
+    });
 
     return MultiBlocProvider(
       providers: [

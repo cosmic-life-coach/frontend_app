@@ -6,6 +6,7 @@ library;
 import 'package:dio/dio.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/analytics/analytics_service.dart';
 import '../../../core/api/api_exception.dart';
 import '../../../core/logging/app_logger.dart';
 import '../model/user_profile.dart';
@@ -27,6 +28,8 @@ class ProfileViewModel extends AsyncNotifier<UserProfile?> {
       final saved = await ref.read(profileRepositoryProvider).save(profile);
       state = AsyncData(saved);
       appLogger.i('profile: saved; chart recomputed');
+      // ignore: unawaited_futures
+      ref.read(analyticsServiceProvider).logProfileSaved();
       return null;
     } on DioException catch (e, st) {
       final api = e.error;

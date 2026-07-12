@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../analytics/analytics_service.dart';
 import '../../features/auth/view/auth_screen.dart';
 import '../../features/calendar/view/calendar_screen.dart';
 import '../../features/home/view/home_screen.dart';
@@ -48,7 +49,7 @@ GoRouter buildRouter() {
       if (signedIn && goingToAuth) return Routes.home;
       return null;
     },
-    observers: [_LoggingObserver()],
+    observers: [_LoggingObserver(), AnalyticsService().routeObserver],
     routes: [
       GoRoute(path: Routes.splash, builder: (_, __) => const SplashScreen()),
       GoRoute(path: Routes.auth, builder: (_, __) => const AuthScreen()),

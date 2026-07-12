@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/analytics/analytics_service.dart';
 import '../../../core/api/sse_client.dart';
 import '../../../core/logging/app_logger.dart';
 import '../repository/chat_repository.dart';
@@ -64,11 +65,14 @@ class ChatState {
 // ---------- Bloc ----------
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  ChatBloc(this._repository) : super(const ChatState()) {
+  ChatBloc(this._repository, [AnalyticsService? analytics])
+      : _analytics = analytics ?? AnalyticsService(),
+        super(const ChatState()) {
     on<ChatMessageSent>(_onMessageSent);
   }
 
   final ChatRepository _repository;
+  final AnalyticsService _analytics;
 
   /// Full lifecycle of one exchange, processed inside a single handler so
   /// events can't interleave mid-stream:
@@ -93,6 +97,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         error: null,
       ),
     );
+    // ignore: unawaited_futures
+    _analytics.logChatMessageSent();
 
     try {
       await emit.forEach<SseEvent>(

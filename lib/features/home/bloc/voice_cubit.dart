@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+import '../../../core/analytics/analytics_service.dart';
 import '../../../core/logging/app_logger.dart';
 
 enum VoiceStatus {
@@ -56,11 +57,13 @@ class VoiceState {
 }
 
 class VoiceCubit extends Cubit<VoiceState> {
-  VoiceCubit({SpeechToText? speech})
+  VoiceCubit({SpeechToText? speech, AnalyticsService? analytics})
       : _speech = speech ?? SpeechToText(),
+        _analytics = analytics ?? AnalyticsService(),
         super(const VoiceState());
 
   final SpeechToText _speech;
+  final AnalyticsService _analytics;
   bool _initialized = false;
 
   /// Mic tap: start listening, or stop early if already listening.
@@ -84,6 +87,8 @@ class VoiceCubit extends Cubit<VoiceState> {
     }
 
     emit(state.copyWith(status: VoiceStatus.listening, transcript: ''));
+    // ignore: unawaited_futures
+    _analytics.logVoiceUsed();
     await _speech.listen(
       onResult: _onResult,
       listenOptions: SpeechListenOptions(partialResults: true),

@@ -2,6 +2,7 @@
 library;
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:cosmic_coach/core/analytics/analytics_service.dart';
 import 'package:cosmic_coach/core/api/sse_client.dart';
 import 'package:cosmic_coach/features/home/bloc/chat_bloc.dart';
 import 'package:cosmic_coach/features/home/repository/chat_repository.dart';
@@ -10,10 +11,16 @@ import 'package:mocktail/mocktail.dart';
 
 class MockChatRepository extends Mock implements ChatRepository {}
 
+class MockAnalyticsService extends Mock implements AnalyticsService {}
+
 void main() {
   late MockChatRepository repo;
+  late MockAnalyticsService analytics;
 
-  setUp(() => repo = MockChatRepository());
+  setUp(() {
+    repo = MockChatRepository();
+    analytics = MockAnalyticsService();
+  });
 
   blocTest<ChatBloc, ChatState>(
     'happy path: user bubble, assistant grows chunk by chunk, stream closes',
@@ -78,5 +85,25 @@ void main() {
     act: (bloc) => bloc.add(const ChatMessageSent('   ')),
     expect: () => const <ChatState>[], // no state change at all
     verify: (_) => verifyNever(() => repo.streamChat(any())),
+  );
+
+  blocTest<ChatBloc, ChatState>(
+    'a real message logs the chat_message_sent analytics event',
+    build: () {
+      when(() => repo.streamChat('hello')).thenAnswer(
+        (_) => Stream.fromIterable(const [SseDone('uid_daily_coach_002')]),
+      );
+      return ChatBloc(repo, analytics);
+    },
+    setUp: () => when(() => analytics.logChatMessageSent()).thenAnswer((_) async {}),
+    act: (bloc) => bloc.add(const ChatMessageSent('hello')),
+    verify: (_) => verify(() => analytics.logChatMessageSent()).called(1),
+  );
+
+  blocTest<ChatBloc, ChatState>(
+    'blank input never logs an analytics event',
+    build: () => ChatBloc(repo, analytics),
+    act: (bloc) => bloc.add(const ChatMessageSent('   ')),
+    verify: (_) => verifyNever(() => analytics.logChatMessageSent()),
   );
 }

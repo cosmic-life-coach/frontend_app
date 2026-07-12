@@ -13,12 +13,18 @@ import 'package:flutter/material.dart';
 
 /// One star's fixed properties; opacity animates via the painter's `t`.
 class _Star {
-  const _Star(this.x, this.y, this.size, this.phase);
+  const _Star(this.x, this.y, this.size, this.phase, this.speed);
 
   final double x; // 0..1 of width
   final double y; // 0..1 of height
   final double size; // px
   final double phase; // twinkle offset so stars don't blink in unison
+  /// Per-star cycle-rate multiplier -- without this every star shares the
+  /// same 6s period (only phase-shifted), which reads as one synchronized
+  /// pulse across the whole sky rather than independent sparkle. The
+  /// mockup's own star list varies each one's animation-duration for the
+  /// same reason.
+  final double speed;
 }
 
 /// Generate the fixed sky once. 40 stars, like the mockup's `stars` list.
@@ -30,6 +36,7 @@ final List<_Star> _sky = () {
       rng.nextDouble(),
       rng.nextDouble() * 1.8 + 0.8,
       rng.nextDouble() * 2 * pi,
+      rng.nextDouble() * 0.9 + 0.6, // 0.6x - 1.5x the base twinkle rate
     );
   });
 }();
@@ -67,9 +74,16 @@ class StarfieldPainter extends CustomPainter {
     );
 
     // --- Stars: opacity oscillates .25 → 1 (design keyframe `twinkle`).
+    // Note: `t` wraps 0->1 every 6s (the host screen's shared sky
+    // controller), so a star whose `speed` isn't a whole number gets one
+    // tiny phase discontinuity at each wrap -- imperceptible for a single
+    // small twinkling dot in a field of 40, and not worth a second
+    // AnimationController just for this (unlike the home Om orb's ripple,
+    // which is one large, singular, clearly-visible element).
     final paint = Paint();
     for (final star in _sky) {
-      final twinkle = 0.25 + 0.75 * (0.5 + 0.5 * sin(2 * pi * t + star.phase));
+      final twinkle =
+          0.25 + 0.75 * (0.5 + 0.5 * sin(2 * pi * t * star.speed + star.phase));
       paint
         ..color = starColor.withValues(alpha: twinkle)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5);

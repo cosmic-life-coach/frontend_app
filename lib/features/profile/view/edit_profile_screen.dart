@@ -7,9 +7,11 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:geocoding/geocoding.dart' as geo;
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../../core/theme/cosmic_theme.dart';
 import '../model/user_profile.dart';
 import '../view_model/profile_view_model.dart';
@@ -29,8 +31,6 @@ class EditProfileScreen extends HookConsumerWidget {
     // coordinate entry is the v1 compromise.
     final lat = useTextEditingController(text: existing?.lat.toString() ?? '');
     final lon = useTextEditingController(text: existing?.lon.toString() ?? '');
-    final tz = useTextEditingController(
-        text: (existing?.tzOffset ?? 5.5).toString());
     final dob = useState<String>(existing?.dob ?? '');
     final birthTime = useState<String>(existing?.birthTime ?? '');
     final gender = useState<String?>(existing?.gender);
@@ -63,6 +63,23 @@ class EditProfileScreen extends HookConsumerWidget {
       }
     }
 
+    /// Birth-place name -> coordinates via the device's geocoder.
+    /// Wrong coordinates silently produce a wrong lagna, so we resolve
+    /// from the place name instead of trusting hand-typed numbers.
+    Future<bool> resolveCoordinates() async {
+      try {
+        final results = await geo.locationFromAddress(place.text.trim());
+        if (results.isEmpty) return false;
+        lat.text = results.first.latitude.toStringAsFixed(4);
+        lon.text = results.first.longitude.toStringAsFixed(4);
+        appLogger.i('geocoded "${place.text}" -> ${lat.text}, ${lon.text}');
+        return true;
+      } catch (e) {
+        appLogger.w('geocoding failed for "${place.text}": $e');
+        return false;
+      }
+    }
+
     Future<void> save() async {
       // Minimal client-side validation; the backend re-validates and
       // refuses details that can't produce a chart (422).
@@ -78,6 +95,26 @@ class EditProfileScreen extends HookConsumerWidget {
       }
 
       saving.value = true;
+
+      // Coordinates empty or zero? Resolve them from the place name —
+      // a lagna computed from (0,0) is astrology for a ship off Ghana.
+      final latVal = double.tryParse(lat.text) ?? 0;
+      final lonVal = double.tryParse(lon.text) ?? 0;
+      if (latVal == 0 && lonVal == 0) {
+        final ok = await resolveCoordinates();
+        if (!ok) {
+          saving.value = false;
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    "Couldn't locate that place — check the spelling or enter coordinates manually."),
+              ),
+            );
+          }
+          return;
+        }
+      }
       final error = await ref.read(profileViewModelProvider.notifier).save(
             UserProfile(
               name: name.text.trim(),
@@ -86,7 +123,10 @@ class EditProfileScreen extends HookConsumerWidget {
               birthPlace: place.text.trim(),
               lat: double.tryParse(lat.text) ?? 0,
               lon: double.tryParse(lon.text) ?? 0,
-              tzOffset: double.tryParse(tz.text) ?? 5.5,
+              // Never hand-typed -- the backend derives the correct offset
+              // from lat/lon/dob. Pass through whatever we last knew (or
+              // null for a brand-new profile) purely for display continuity.
+              tzOffset: existing?.tzOffset,
               gender: gender.value,
             ),
           );
@@ -201,14 +241,14 @@ class EditProfileScreen extends HookConsumerWidget {
                       controller: lon,
                       cosmic: cosmic,
                       numeric: true)),
-              const SizedBox(width: 16),
-              Expanded(
-                  child: _Underline(
-                      label: 'UTC OFFSET',
-                      controller: tz,
-                      cosmic: cosmic,
-                      numeric: true)),
             ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            existing?.tzOffset != null
+                ? 'Timezone: UTC${existing!.tzOffset! >= 0 ? '+' : ''}${existing.tzOffset} (auto-detected from birth place)'
+                : 'Timezone is auto-detected from your birth place -- no need to enter it.',
+            style: TextStyle(fontSize: 11, color: cosmic.muted),
           ),
           const SizedBox(height: 20),
 

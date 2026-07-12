@@ -97,4 +97,25 @@ void main() {
     expect(json['tz_offset'], 5.5);
     expect(json.containsKey('gender'), isFalse); // omitted when null
   });
+
+  test('tz_offset parses as null for a brand-new profile (never sent by client)', () {
+    final withoutTz = UserProfile.fromJson({
+      ...sampleResponse,
+      'profile': {...sampleResponse['profile'] as Map, 'tz_offset': null},
+    });
+    expect(withoutTz.tzOffset, isNull);
+  });
+
+  test('tz_offset is omitted from the request payload when null', () {
+    const brandNew = UserProfile(
+      name: 'New Seeker',
+      dob: '2000-01-01',
+      birthTime: '00:00',
+      birthPlace: 'Delhi, India',
+      lat: 28.61,
+      lon: 77.21,
+      // tzOffset intentionally omitted -- the backend derives it.
+    );
+    expect(brandNew.toRequestJson().containsKey('tz_offset'), isFalse);
+  });
 }
